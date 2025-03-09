@@ -1,8 +1,6 @@
-# %%
 #thank you george starcher for the collector class and example https://github.com/georgestarcher/Splunk-Class-httpevent
 from splunk_http_event_collector import http_event_collector
 from faker import Faker
-import json
 import logging
 import sys
 import os
@@ -10,15 +8,12 @@ from dotenv import load_dotenv
 fake = Faker()
 Faker.seed(13)
 
-# %%
 load_dotenv()
 key = os.getenv('key')
 host = os.getenv('host')
 
-
-# %%
+#define datagen function to emulate user/asset info
 def datagen():
-
     for i in range(5):
         return{
             'hostname': fake.hostname(levels=0),
@@ -33,12 +28,12 @@ def datagen():
             'date': fake.iso8601(sep=' ')
         }
 
-# %%
-# init logging config, this would be job of your main code using this class.
+
+# init logging config
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S %z')
 
 
-# Create event collector object, default SSL and HTTP Event Collector Port
+# default SSL and port, key and host set in .env
 http_event_collector_key = key
 http_event_collector_host = host
 
@@ -49,21 +44,19 @@ hec_reachable = writeevent.check_connectivity()
 if not hec_reachable:
     sys.exit(1)
 
-# %%
-# Set to pop null fields.  Always a good idea
+#populate null fields
 writeevent.popNullFields = True
-# set logging to DEBUG for example
+# set logging to DEBUG 
 writeevent.log.setLevel(logging.DEBUG)
 
-# Start event payload and add the metadata information
+
 payload = {}
 payload.update({"index":"asset"})
 payload.update({"sourcetype":"json_no_timestamp"})
 payload.update({"source":"UserData"})
 
-
-# %%
-for i in range(5000):
+# loop to call datagen and write event to hec
+for i in range(50000):
     event = datagen()
     event.update({"action":"success"})
     event.update({"event_type":"single"})

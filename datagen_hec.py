@@ -56,12 +56,13 @@ payload.update({"sourcetype":"json_no_timestamp"})
 payload.update({"source":"UserData"})
 
 # loop to call datagen and write event to hec
-for i in range(50000):
+for i in range(5000):
     event = datagen()
     event.update({"action":"success"})
     event.update({"event_type":"single"})
     event.update({"event_id":i})
     payload.update({"event":event})
-    writeevent.sendEvent(payload)    
+    writeevent.batchEvent(payload)
+writeevent.flushBatch()        
 
 
